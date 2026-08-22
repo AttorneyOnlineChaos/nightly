@@ -1,0 +1,12 @@
+[submodule "theory"]
+	path = theory
+	url = https://github.com/AttorneyOnlineChaos/theory.git
+	branch = chaos-theory
+[submodule "kenji"]
+	path = kenji
+	url = https://github.com/AttorneyOnlineChaos/kenji.git
+	branch = chaos-theory
+[submodule "spritechat"]
+	path = spritechat
+	url = https://github.com/AttorneyOnlineChaos/spritechat.git
+	branch = chaos-theory

@@ -1,0 +1,98 @@
+name: Nightly
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Move submodules to latest chaos-theory
+        run: git submodule update --remote --recursive
+
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          aqtversion: '==3.1.*'
+          version: '6.8.3'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_msvc2022_64'
+          cache: true
+          cache-key-prefix: install-qt-action
+          modules: 'qtimageformats qtwebsockets qthttpserver'
+
+      - name: Install BASS
+        shell: bash
+        run: |
+          curl http://www.un4seen.com/files/bass24.zip -o bass.zip
+          unzip -d bass -o bass.zip
+          cp ./bass/c/bass.h ./spritechat/external/
+          cp ./bass/c/x64/bass.lib ./spritechat/external/
+          cp ./bass/x64/bass.dll ./spritechat/bin/
+
+          curl http://www.un4seen.com/files/bassopus24.zip -o bassopus.zip
+          unzip -d bass -o bassopus.zip
+          cp ./bass/c/bassopus.h ./spritechat/external/
+          cp ./bass/c/x64/bassopus.lib ./spritechat/external/
+          cp ./bass/x64/bassopus.dll ./spritechat/bin/
+
+      - name: Configure
+        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Build Apng plugin
+        run: |
+          git clone --depth 1 https://github.com/jurplel/QtApng qtapng
+          cmake -S qtapng -B qtapng/build -D CMAKE_BUILD_TYPE=Release
+          cmake --build qtapng/build --config Release
+
+      - name: Package server
+        shell: bash
+        run: |
+          mkdir -p server
+          cp kenji/bin/kenji-runtime.exe server/kenji.exe
+          cp -r kenji/bin/config_sample server/
+          cp -r kenji/bin/storage server/
+          windeployqt --release --no-translations --no-compiler-runtime --no-opengl-sw server/kenji.exe
+
+      - name: Package client
+        shell: bash
+        run: |
+          mkdir -p client/imageformats
+          cp spritechat/bin/spritechat-runtime.exe client/spritechat.exe
+          cp spritechat/bin/bass.dll client/
+          cp spritechat/bin/bassopus.dll client/
+          windeployqt --no-quick-import --no-translations --no-compiler-runtime --no-opengl-sw client/spritechat.exe
+          find qtapng/build -name qapng.dll -exec cp {} client/imageformats/ \;
+
+      - name: Zip packages
+        shell: pwsh
+        run: |
+          Compress-Archive -Path server -DestinationPath server-windows.zip
+          Compress-Archive -Path client -DestinationPath client-windows.zip
+
+      - name: Upload server
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-windows
+          path: server-windows.zip
+
+      - name: Upload client
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-windows
+          path: client-windows.zip
