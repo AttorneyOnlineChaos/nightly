@@ -1,10 +1,18 @@
-name: Nightly
+name: Build
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: Build mode
+        type: choice
+        default: nightly
+        options:
+          - nightly
+          - release
 
 concurrency:
-  group: nightly-${{ github.ref }}
+  group: build-${{ inputs.mode }}
   cancel-in-progress: true
 
 jobs:
@@ -16,10 +24,15 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
-          token: ${{ secrets.CHAOS_TOKEN }}
+          token: ${{ secrets.CLONE_CHAOS }}
 
-      - name: Move submodules to latest chaos-theory
-        run: git submodule update --remote --recursive
+      - name: Move submodules to latest ${{ inputs.mode }}
+        run: |
+          git config -f .gitmodules submodule.theory.branch ${{ inputs.mode }}
+          git config -f .gitmodules submodule.kenji.branch ${{ inputs.mode }}
+          git config -f .gitmodules submodule.spritechat.branch ${{ inputs.mode }}
+          git submodule sync
+          git submodule update --remote --recursive
 
       - uses: ilammy/msvc-dev-cmd@v1
 
