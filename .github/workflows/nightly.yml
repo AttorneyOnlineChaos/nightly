@@ -15,6 +15,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          token: ${{ secrets.CHAOS_TOKEN }}
 
       - name: Move submodules to latest chaos-theory
         run: git submodule update --remote --recursive
