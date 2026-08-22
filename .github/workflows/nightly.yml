@@ -81,20 +81,14 @@ jobs:
           windeployqt --no-quick-import --no-translations --no-compiler-runtime --no-opengl-sw client/spritechat.exe
           find qtapng/build -name qapng.dll -exec cp {} client/imageformats/ \;
 
-      - name: Zip packages
-        shell: pwsh
-        run: |
-          Compress-Archive -Path server -DestinationPath server-windows.zip
-          Compress-Archive -Path client -DestinationPath client-windows.zip
-
       - name: Upload server
         uses: actions/upload-artifact@v4
         with:
           name: server-windows
-          path: server-windows.zip
+          path: server
 
       - name: Upload client
         uses: actions/upload-artifact@v4
         with:
           name: client-windows
-          path: client-windows.zip
+          path: client
