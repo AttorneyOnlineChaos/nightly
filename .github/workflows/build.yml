@@ -21,18 +21,27 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
         with:
-          submodules: recursive
-          fetch-depth: 0
+          repository: AttorneyOnlineChaos/theory
+          ref: ${{ inputs.mode }}
+          path: theory
           token: ${{ secrets.CLONE_CHAOS }}
 
-      - name: Move submodules to latest ${{ inputs.mode }}
-        run: |
-          git config -f .gitmodules submodule.theory.branch ${{ inputs.mode }}
-          git config -f .gitmodules submodule.kenji.branch ${{ inputs.mode }}
-          git config -f .gitmodules submodule.spritechat.branch ${{ inputs.mode }}
-          git submodule sync
-          git submodule update --remote --recursive
+      - uses: actions/checkout@v4
+        with:
+          repository: AttorneyOnlineChaos/kenji
+          ref: ${{ inputs.mode }}
+          path: kenji
+          token: ${{ secrets.CLONE_CHAOS }}
+
+      - uses: actions/checkout@v4
+        with:
+          repository: AttorneyOnlineChaos/spritechat
+          ref: ${{ inputs.mode }}
+          path: spritechat
+          token: ${{ secrets.CLONE_CHAOS }}
 
       - uses: ilammy/msvc-dev-cmd@v1
 
