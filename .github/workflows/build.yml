@@ -19,6 +19,9 @@ jobs:
   build-windows:
     runs-on: windows-latest
 
+    permissions:
+      contents: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -114,3 +117,21 @@ jobs:
         with:
           name: client-windows
           path: client
+
+      - name: Package archives
+        if: inputs.mode == 'nightly'
+        shell: bash
+        run: |
+          (cd server && 7z a ../server-windows.zip .)
+          (cd client && 7z a ../client-windows.zip .)
+
+      - name: Publish nightly
+        if: inputs.mode == 'nightly'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nightly
+          name: Latest Nightly
+          prerelease: true
+          files: |
+            server-windows.zip
+            client-windows.zip
