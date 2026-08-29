@@ -76,10 +76,10 @@ jobs:
           cp ./bass/x64/bassopus.dll ./spritechat/bin/
 
       - name: Configure
-        run: cmake -S . -B build -D CMAKE_BUILD_TYPE=Release
+        run: cmake -S . -B build -G Ninja -D CMAKE_BUILD_TYPE=Release
 
       - name: Build
-        run: cmake --build build --config Release
+        run: cmake --build build
 
       - name: Build Apng plugin
         run: |
